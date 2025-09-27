@@ -27,7 +27,7 @@
    # (1) get stable Rust
    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
    # (2) clone
-   git clone https://github.com/tuuser/plugins-ext && cd plugins-ext
+   git clone https://github.com/WPAT-Project/plugins-ext && cd plugins-ext
    # (3) compile & install Python wheel
    pip install maturin
    maturin develop --release

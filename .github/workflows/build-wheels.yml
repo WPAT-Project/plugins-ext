@@ -1,10 +1,10 @@
-name: Build wheels
+name: Build and Release Wheels
 
 on:
   push:
     tags:
-      - '*.*.*'   # Para tags como '1.2.3'
-      - '*.*'     # Para tags como '1.2'
+      - '*.*'
+      - '*.*.*'
   workflow_dispatch:
 
 jobs:
@@ -23,34 +23,46 @@ jobs:
           command: build
           args: --release --out dist
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload wheels
+        uses: actions/upload-artifact@v4
         with:
           name: wheels-${{ matrix.os }}
           path: dist
 
   release:
     name: Create GitHub Release
-    needs: build  # espera a que termine el job de build en todas las plataformas
+    needs: build
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/download-artifact@v4
+      # Descargar los artefactos de cada sistema operativo
+      - name: Download Linux wheels
+        uses: actions/download-artifact@v4
         with:
           name: wheels-ubuntu-latest
           path: dist/linux
-      - uses: actions/download-artifact@v4
+
+      - name: Download Windows wheels
+        uses: actions/download-artifact@v4
         with:
           name: wheels-windows-latest
           path: dist/windows
-      - uses: actions/download-artifact@v4
+
+      - name: Download macOS wheels
+        uses: actions/download-artifact@v4
         with:
           name: wheels-macos-latest
           path: dist/macos
 
+      # Crear la release y subir los archivos
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ github.ref_name }}
           files: |
-            dist/**/*  # Esto sube todos los .whl generados
+            dist/linux/*.whl
+            dist/windows/*.whl
+            dist/macos/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

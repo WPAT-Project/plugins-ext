@@ -3,8 +3,8 @@ name: Build wheels
 on:
   push:
     tags:
-      - '*.*.*'   # Para tags como '1.0.0'
-      - '*.*'     # Para tags como '1.0'
+      - '*.*.*'   # Para tags como '1.2.3'
+      - '*.*'     # Para tags como '1.2'
   workflow_dispatch:
 
 jobs:
@@ -27,3 +27,30 @@ jobs:
         with:
           name: wheels-${{ matrix.os }}
           path: dist
+
+  release:
+    name: Create GitHub Release
+    needs: build  # espera a que termine el job de build en todas las plataformas
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheels-ubuntu-latest
+          path: dist/linux
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheels-windows-latest
+          path: dist/windows
+      - uses: actions/download-artifact@v4
+        with:
+          name: wheels-macos-latest
+          path: dist/macos
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          files: |
+            dist/**/*  # Esto sube todos los .whl generados

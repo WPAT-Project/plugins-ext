@@ -1,11 +1,16 @@
 name: Build and Release Wheels
 
 on:
-  push:
-    tags:
-      - '*.*'
-      - '*.*.*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag para la release (ejemplo: 1.0.0)'
+        required: true
+        default: 'manual-0.1'
+      release_notes:
+        description: 'Descripción de la release (opcional)'
+        required: false
+        default: ''
 
 jobs:
   build:
@@ -35,7 +40,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Descargar los artefactos de cada sistema operativo
       - name: Download Linux wheels
         uses: actions/download-artifact@v4
         with:
@@ -54,12 +58,12 @@ jobs:
           name: wheels-macos-latest
           path: dist/macos
 
-      # Crear la release y subir los archivos
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag }}
+          name: ${{ github.event.inputs.tag }}
+          body: ${{ github.event.inputs.release_notes }}
           files: |
             dist/linux/*.whl
             dist/windows/*.whl
